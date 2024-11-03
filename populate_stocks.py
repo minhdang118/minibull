@@ -2,7 +2,18 @@ import sqlite3, config
 
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import GetAssetsRequest
-from alpaca.trading.enums import AssetClass
+
+from alpaca.trading.enums import ( 
+    AssetClass,
+    AssetStatus, 
+    AssetExchange, 
+    OrderSide, 
+    OrderType, 
+    TimeInForce, 
+    OrderClass, 
+    QueryOrderStatus
+)
+from alpaca.common.exceptions import APIError
 
 # Connect to the database
 connection = sqlite3.connect(config.DB_FILE)
@@ -20,7 +31,7 @@ symbols = [row['symbol'] for row in rows]
 # Search for stock assets
 trading_client = TradingClient(config.API_KEY, config.SECRET_KEY)
 
-search_params = GetAssetsRequest(asset_class=AssetClass.US_EQUITY)
+search_params = GetAssetsRequest(asset_class=AssetClass.US_EQUITY, exchange=AssetExchange.NYSE, status=AssetStatus.ACTIVE)
 
 assets = trading_client.get_all_assets(search_params)
 

@@ -25,20 +25,23 @@ now = datetime.now(ZoneInfo("America/New_York"))
 
 chunks = [symbols[i:i + 200] for i in range(0, len(symbols), 200)]
 
+idx = 0
 for chunk in chunks:
-  request = StockBarsRequest(
-      symbol_or_symbols=chunk,
-      timeframe=TimeFrame(amount=1, unit=TimeFrameUnit.Day),
-      start=now - timedelta(days=365),
-      end=now - timedelta(days=1),
-  )
-  barsets = stock_historical_data_client.get_stock_bars(request)
-  for symbol in barsets.data:
-      print(f"Processing {symbol}")
-      for bar in barsets.data[symbol]:
-          cursor.execute("""
-              INSERT INTO stock_price (stock_id, date, open, high, low, close, volume)
-              VALUES (?, ?, ?, ?, ?, ?, ?)
-          """, (rows[symbols.index(symbol)]['id'], bar.timestamp.date(), bar.open, bar.high, bar.low, bar.close, bar.volume))
+    print(f"Processing chunk {idx}")
+    request = StockBarsRequest(
+        symbol_or_symbols=chunk,
+        timeframe=TimeFrame(amount=1, unit=TimeFrameUnit.Day),
+        start=now - timedelta(days=365),
+        end=now - timedelta(days=1),
+    )
+    barsets = stock_historical_data_client.get_stock_bars(request)
+    for symbol in barsets.data:
+        print(f"Processing {symbol}")
+        for bar in barsets.data[symbol]:
+            cursor.execute("""
+                INSERT INTO stock_price (stock_id, date, open, high, low, close, volume)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (rows[symbols.index(symbol)]['id'], bar.timestamp.date(), bar.open, bar.high, bar.low, bar.close, bar.volume))
+    idx += 1
 
 connection.commit()
